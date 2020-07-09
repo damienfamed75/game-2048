@@ -5,7 +5,7 @@ pub mod object;
 use game::Game;
 
 fn main() {
-    let g = Game::new();
+    let mut g = Game::new();
     // Draw the first frame.
     g.draw();
     // Game loop.

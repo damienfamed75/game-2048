@@ -19,19 +19,22 @@ impl Grid {
     pub fn new() -> Self {
         let mut grid = Self([[Object::default(); GRID_HEIGHT]; GRID_WIDTH]);
         // Generate two random variables to spawn.
-        let mut j = 0;
-        while j < 2 {
+		grid.new_rand_block(2);
+		grid.new_rand_block(2);
+		// Return the grid with the new two random blocks.
+        grid
+	}
+	pub fn new_rand_block(&mut self, number: i16) {
+        loop {
             let mut rng = rand::thread_rng();
             let (x, y) = (rng.gen_range(0, GRID_WIDTH), rng.gen_range(0, GRID_HEIGHT));
             // If this coordinate is empty then add a new block there.
-            if let Object::Empty = grid.0[x][y] {
-                grid.0[x][y] = Object::Block(2);
-                j += 1;
+            if let Object::Empty = self.0[x][y] {
+                self.0[x][y] = Object::Block(2);
+                return;
             }
         }
-
-        grid
-    }
+	}
     pub fn to_string(&self) -> String {
         let arr = self.0;
         let mut response = String::new();
@@ -88,36 +91,107 @@ impl Grid {
         }
         Some(self.0[x][y])
     }
-    pub fn mov(&mut self, number: i16, x: i8, y: i8, dx: i8, dy: i8) {
-        for xx in x..(x + dx) {
-            if let Some(Object::Block(other_number)) = self.obj_at(xx as usize, y as usize) {
-                if number == other_number {
-                    self.0[xx as usize][y as usize] = Object::Block(other_number + number);
-                    self.0[x as usize][y as usize] = Object::Empty;
+    pub fn mov(&mut self, number: i16, x: i8, y: i8, dx: i8, dy: i8) -> (i8, i8, i16) {
+		if dx != 0 {
+			if let Some(obj) = self.obj_at((x+dx) as usize, y as usize) {
+				match obj {
+					Object::Block(other_number) => {
+						println!("block found [y]");
+						if number == other_number {
+							self.0[(x+dx) as usize][y as usize] = Object::Block(other_number + number);
+							self.0[x as usize][y as usize] = Object::Empty;
+							return (x+dx, y+dy, other_number+number);
+						}
+					}
+					Object::Empty => {
+						println!("empty found [y]");
+						self.0[(x+dx) as usize][y as usize] = Object::Block(number);
+						self.0[x as usize][y as usize] = Object::Empty;
+						return (x+dx, y, number);
+					}
+				}
+			}
+		} else if dy != 0 {
+			if let Some(obj) = self.obj_at(x as usize, (y+dy) as usize) {
+				match obj {
+					Object::Block(other_number) => {
+						println!("block found [y]");
+						if number == other_number {
+							self.0[x as usize][(y+dy) as usize] = Object::Block(other_number + number);
+							self.0[x as usize][y as usize] = Object::Empty;
+							return (x, y+dy, other_number+number);
+						}
+					}
+					Object::Empty => {
+						println!("empty found [y]");
+						self.0[x as usize][(y+dy) as usize] = Object::Block(number);
+						self.0[x as usize][y as usize] = Object::Empty;
+						return (x, y+dy, number);
+					}
+				}
+			}
+		}
+
+        (x, y, number)
+    }
+    pub fn mov_direction(&mut self, dir: &Keycode) {
+        for x in 0..self.0.len() {
+            for y in 0..self.0[x].len() {
+                if let Object::Block(number) = self.0[x][y] {
+                    match *dir {
+                        Keycode::Right =>{
+							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
+							let mut onum = number; // var for original number.
+							loop {
+								let (nx, ny, nnum) = self.mov(onum, ox, oy, 0, 1);
+								if (nx, ny) == (ox, oy) { break; }
+								// Originals equal the new values.
+								ox = nx;
+								oy = ny;
+								onum = nnum;
+							}
+						},
+                        Keycode::Left => {
+							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
+							let mut onum = number; // var for original number.
+							loop {
+								let (nx, ny, nnum) = self.mov(onum, ox, oy, 0, -1);
+								if (nx, ny) == (ox, oy) { break; }
+								// Originals equal the new values.
+								ox = nx;
+								oy = ny;
+								onum = nnum;
+							}
+                        }
+                        Keycode::Up => {
+							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
+							let mut onum = number; // var for original number.
+							loop {
+								let (nx, ny, nnum) = self.mov(onum, ox, oy, -1, 0);
+								if (nx, ny) == (ox, oy) { break; }
+								// Originals equal the new values.
+								ox = nx;
+								oy = ny;
+								onum = nnum;
+							}
+						},
+                        Keycode::Down => {
+							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
+							let mut onum = number; // var for original number.
+							loop {
+								let (nx, ny, nnum) = self.mov(onum, ox, oy, 1, 0);
+								if (nx, ny) == (ox, oy) { break; }
+								// Originals equal the new values.
+								ox = nx;
+								oy = ny;
+								onum = nnum;
+							}
+                        }
+                        _ => {},
+                    }
                 }
             }
         }
-        for _yy in y..(y + dy) {}
-    }
-    pub fn mov_direction(&mut self, _dir: &Keycode) {
-        // let arr = &mut self.0;
-        // for (x, row) in arr.iter().enumerate() {
-        //     for (y, col) in row.iter().enumerate() {
-        //         if let Object::Block(number) = col {
-        //             match *dir {
-        //                 Keycode::Up => self.mov(*number, x as i8, y as i8, 0, GRID_HEIGHT as i8),
-        //                 Keycode::Down => {
-        //                     self.mov(*number, x as i8, y as i8, 0, GRID_HEIGHT as i8 * -1)
-        //                 }
-        //                 Keycode::Left => self.mov(*number, x as i8, y as i8, GRID_WIDTH as i8, 0),
-        //                 Keycode::Right => {
-        //                     self.mov(*number, x as i8, y as i8, GRID_WIDTH as i8 * -1, 0)
-        //                 }
-        //                 _ => self.mov(0, x as i8, y as i8, 0, 0),
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
 

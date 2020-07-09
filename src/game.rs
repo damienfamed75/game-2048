@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use crate::grid::Grid;
 
+use rand::Rng;
 use device_query::{DeviceQuery, DeviceState, Keycode};
 
 const UPDATE_PAUSE_MILLIS: u64 = 500;
@@ -21,10 +22,13 @@ impl Game {
             map: Grid::new(),
         }
     }
-    pub fn update(&self) {
+    pub fn update(&mut self) {
         let keys: Vec<Keycode> = self.device.get_keys();
         for key in keys.iter() {
             if is_move_key(key) {
+				self.map.mov_direction(key);
+				let multiplier = self.rand_multiplier();
+				self.map.new_rand_block(2*multiplier);
                 self.draw();
                 println!("Pressed key: {:?}", key);
                 // Sleep on this thread so it doesn't draw a billion times from
@@ -37,7 +41,11 @@ impl Game {
         print!("\x1B[2J\x1B[1;1H");
         println!("score: {}", self.score);
         println!("{}", self.map.to_string());
-    }
+	}
+	fn rand_multiplier(&self) -> i16 {
+		let mut rng = rand::thread_rng();
+		rng.gen_range(0, 3) as i16
+	}
 }
 
 fn is_move_key(key: &Keycode) -> bool {
