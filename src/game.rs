@@ -30,7 +30,7 @@ impl Game {
         for key in keys.iter() {
             // Only try to move if it's a valid movement key.
             if is_move_key(key) {
-                self.update_movement(key);
+                self.score += self.update_movement(key);
                 // Try to create a new block.
                 // If unsuccessful then the error is propogated.
                 self.map.new_rand_block()?;
@@ -43,7 +43,7 @@ impl Game {
         }
         Ok(())
     }
-    pub fn update_movement(&mut self, dir: &Keycode) {
+    pub fn update_movement(&mut self, dir: &Keycode) -> i32 {
         // Since the game coordinates are actually set up like this:
         //
         //		0 ⇒ y
@@ -63,39 +63,31 @@ impl Game {
         // That's why the x, and y are flipped around in a confusing manner
         // when calling the functions to move.
         match dir.to_owned() {
-            Keycode::Right => {
-                self.score += self.map.mov_dir(
-                    (0..GRID_WIDTH).by_ref(),
-                    (0..GRID_HEIGHT).rev().by_ref(),
-                    0,
-                    1, // right +y
-                );
-            }
-            Keycode::Left => {
-                self.score += self.map.mov_dir(
-                    (0..GRID_WIDTH).by_ref(),
-                    (0..GRID_HEIGHT).by_ref(),
-                    0,
-                    -1, // left -y
-                );
-            }
-            Keycode::Down => {
-                self.score += self.map.mov_dir(
-                    (0..GRID_WIDTH).rev().by_ref(),
-                    (0..GRID_HEIGHT).by_ref(),
-                    1, // down +x
-                    0,
-                );
-            }
-            Keycode::Up => {
-                self.score += self.map.mov_dir(
-                    (0..GRID_WIDTH).by_ref(),
-                    (0..GRID_HEIGHT).by_ref(),
-                    -1, // up -x
-                    0,
-                );
-            }
-            _ => {} // Omit other key codes.
+            Keycode::Right => self.map.mov_dir(
+                (0..GRID_WIDTH).by_ref(),
+                (0..GRID_HEIGHT).rev().by_ref(),
+                0,
+                1, // right +y
+            ),
+            Keycode::Left => self.map.mov_dir(
+                (0..GRID_WIDTH).by_ref(),
+                (0..GRID_HEIGHT).by_ref(),
+                0,
+                -1, // left -y
+            ),
+            Keycode::Down => self.map.mov_dir(
+                (0..GRID_WIDTH).rev().by_ref(),
+                (0..GRID_HEIGHT).by_ref(),
+                1, // down +x
+                0,
+            ),
+            Keycode::Up => self.map.mov_dir(
+                (0..GRID_WIDTH).by_ref(),
+                (0..GRID_HEIGHT).by_ref(),
+                -1, // up -x
+                0,
+            ),
+            _ => 0, // Omit other key codes.
         }
     }
     pub fn draw(&self) {
