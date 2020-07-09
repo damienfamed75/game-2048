@@ -6,6 +6,17 @@ use crate::grid::{Grid, GRID_WIDTH};
 
 const BOX_WIDTH: usize = 8; // individual box width
 
+// Character set:
+// 
+// vertical bars │ │ │
+// separator ──────
+//
+// ┌──────┬──────┐
+//
+// ├──────┼──────┤
+//
+// └──────┴──────┘
+
 impl Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_string())
@@ -13,7 +24,7 @@ impl Display for Grid {
 }
 
 impl Grid {
-	pub(crate) fn to_string(&self) -> String {
+	fn to_string(&self) -> String {
         let arr = self.0;
         let mut response = String::new();
 		// Append the top of the grid.

@@ -50,6 +50,9 @@ impl Game {
 		//		⇓
 		//		x
 		//
+		// (down +x) (up -x)
+		// (left -y) (right +y)
+		//
 		// We have to match what the user would expect when pressing
 		// left, right, up, and down. Such as this:
 		//
@@ -64,28 +67,28 @@ impl Game {
 				self.score += self.map.mov_dir(
 					(0..GRID_WIDTH).by_ref(),
 					(0..GRID_HEIGHT).rev().by_ref(),
-					0, 1,
+					0, 1, // right +y
 				);
 			},
 			Keycode::Left => {
 				self.score += self.map.mov_dir(
 					(0..GRID_WIDTH).by_ref(),
 					(0..GRID_HEIGHT).by_ref(),
-					0, -1,
-				);
-			},
-			Keycode::Up => {
-				self.score += self.map.mov_dir(
-					(0..GRID_WIDTH).by_ref(),
-					(0..GRID_HEIGHT).by_ref(),
-					-1, 0,
+					0, -1, // left -y
 				);
 			},
 			Keycode::Down => {
 				self.score += self.map.mov_dir(
 					(0..GRID_WIDTH).rev().by_ref(),
 					(0..GRID_HEIGHT).by_ref(),
-					1, 0,
+					1, 0, // down +x
+				);
+			},
+			Keycode::Up => {
+				self.score += self.map.mov_dir(
+					(0..GRID_WIDTH).by_ref(),
+					(0..GRID_HEIGHT).by_ref(),
+					-1, 0, // up -x
 				);
 			},
 			_ => {}, // Omit other key codes.
