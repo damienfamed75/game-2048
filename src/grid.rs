@@ -1,3 +1,6 @@
+use std::iter::Iterator;
+use std::iter::IntoIterator;
+
 use crate::object::Object;
 
 use device_query::Keycode;
@@ -10,6 +13,7 @@ const GRID_HEIGHT: usize = 4;
 // const SEPERATOR: &str = "──────";
 
 const BOX_WIDTH: usize = 8;
+const BLOCK_DEFAULT_NUMBER: i16 = 2;
 
 // Grid is a 4x4 2 dimensional array each containing a block.
 // type Grid = [[Object; 4]; 4];
@@ -19,18 +23,18 @@ impl Grid {
     pub fn new() -> Self {
         let mut grid = Self([[Object::default(); GRID_HEIGHT]; GRID_WIDTH]);
         // Generate two random variables to spawn.
-		grid.new_rand_block(2);
-		grid.new_rand_block(2);
+		grid.new_rand_block();
+		grid.new_rand_block();
 		// Return the grid with the new two random blocks.
         grid
 	}
-	pub fn new_rand_block(&mut self, number: i16) {
+	pub fn new_rand_block(&mut self) {
         loop {
             let mut rng = rand::thread_rng();
             let (x, y) = (rng.gen_range(0, GRID_WIDTH), rng.gen_range(0, GRID_HEIGHT));
             // If this coordinate is empty then add a new block there.
             if let Object::Empty = self.0[x][y] {
-                self.0[x][y] = Object::Block(2);
+                self.0[x][y] = Object::Block(BLOCK_DEFAULT_NUMBER);
                 return;
             }
         }
@@ -76,22 +80,13 @@ impl Grid {
 
         response
     }
-    pub fn is_block(&mut self, x: usize, y: usize) -> bool {
-        self.0[x][y] != Object::Empty
-    }
-    pub fn block_at(&mut self, x: usize, y: usize, dx: usize, dy: usize) -> Object {
-        if !is_valid_x(x + dx) || !is_valid_y(y + dy) {
-            return Object::Empty;
-        }
-        self.0[x + dx][y + dy]
-    }
-    pub fn obj_at(&mut self, x: usize, y: usize) -> Option<Object> {
+    fn obj_at(&mut self, x: usize, y: usize) -> Option<Object> {
         if !is_valid_x(x) || !is_valid_y(y) {
             return None;
         }
         Some(self.0[x][y])
-    }
-    pub fn mov(&mut self, number: i16, x: i8, y: i8, dx: i8, dy: i8) -> (i8, i8, i16) {
+	}
+    fn mov_delta(&mut self, number: i16, x: i8, y: i8, dx: i8, dy: i8) -> (i8, i8, i16) {
 		if dx != 0 {
 			if let Some(obj) = self.obj_at((x+dx) as usize, y as usize) {
 				match obj {
@@ -133,85 +128,64 @@ impl Grid {
 		}
 
         (x, y, number)
-    }
-    pub fn mov_direction(&mut self, dir: &Keycode) -> i32 {
+	}
+	fn mov_dir<X: Iterator+Clone, Y: Iterator+Clone>(&mut self, x_iter: &mut X, y_iter: &mut Y, dx: i8, dy: i8) -> i32
+	where 
+		X: Iterator<Item = usize>,
+		Y: Iterator<Item = usize>
+	{
+		let mut delta_score: i32 = 0;
+		for x in x_iter.into_iter() {
+			// We must clone the iterator because the reference is used up after
+			// the first loop.
+			for y in y_iter.clone().into_iter() {
+				if let Object::Block(number) = self.0[x][y] {
+					let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
+					let mut onum = number; // var for original number.
+					loop {
+						let (nx, ny, nnum) = self.mov_delta(onum, ox, oy, dx, dy);
+						if (nx, ny) == (ox, oy) { break; }
+						if onum != nnum { delta_score += nnum as i32; }
+						// Originals equal the new values.
+						ox = nx;
+						oy = ny;
+						onum = nnum;
+					}
+				}
+			}
+		}
+		delta_score
+	}
+    pub fn mov(&mut self, dir: &Keycode) -> i32 {
 		let mut delta_score: i32 = 0;
 		match *dir {
 			Keycode::Right => {
-				for x in 0..self.0.len() {
-					for y in (0..self.0[x].len()).rev() {
-						if let Object::Block(number) = self.0[x][y] {
-							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
-							let mut onum = number; // var for original number.
-							loop {
-								let (nx, ny, nnum) = self.mov(onum, ox, oy, 0, 1);
-								if (nx, ny) == (ox, oy) { break; }
-								if onum != nnum { delta_score += nnum as i32; }
-								// Originals equal the new values.
-								ox = nx;
-								oy = ny;
-								onum = nnum;
-							}
-						}
-					}
-				}
+				delta_score += self.mov_dir(
+					(0..GRID_WIDTH).by_ref(),
+					(0..GRID_HEIGHT).rev().by_ref(),
+					0, 1,
+				);
 			},
 			Keycode::Left => {
-				for x in 0..self.0.len() {
-					for y in 0..self.0[x].len() {
-						if let Object::Block(number) = self.0[x][y] {
-							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
-							let mut onum = number; // var for original number.
-							loop {
-								let (nx, ny, nnum) = self.mov(onum, ox, oy, 0, -1);
-								if (nx, ny) == (ox, oy) { break; }
-								if onum != nnum { delta_score += nnum as i32; }
-								// Originals equal the new values.
-								ox = nx;
-								oy = ny;
-								onum = nnum;
-							}
-						}
-					}
-				}
+				delta_score += self.mov_dir(
+					(0..GRID_WIDTH).by_ref(),
+					(0..GRID_HEIGHT).by_ref(),
+					0, -1,
+				);
 			},
 			Keycode::Up => {
-				for x in 0..self.0.len() {
-					for y in 0..self.0[x].len() {
-						if let Object::Block(number) = self.0[x][y] {
-							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
-							let mut onum = number; // var for original number.
-							loop {
-								let (nx, ny, nnum) = self.mov(onum, ox, oy, -1, 0);
-								if (nx, ny) == (ox, oy) { break; }
-								if onum != nnum { delta_score += nnum as i32; }
-								// Originals equal the new values.
-								ox = nx;
-								oy = ny;
-								onum = nnum;
-							}
-						}
-					}
-				}
+				delta_score += self.mov_dir(
+					(0..GRID_WIDTH).by_ref(),
+					(0..GRID_HEIGHT).by_ref(),
+					-1, 0,
+				);
 			},
 			Keycode::Down => {
-				for x in (0..self.0.len()).rev() {
-					for y in 0..self.0[x].len() {
-						if let Object::Block(number) = self.0[x][y] {
-							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
-							let mut onum = number; // var for original number.
-							loop {
-								let (nx, ny, nnum) = self.mov(onum, ox, oy, 1, 0);
-								if (nx, ny) == (ox, oy) { break; }
-								if onum != nnum { delta_score += nnum as i32; }
-								// Originals equal the new values.
-								ox = nx;
-								oy = ny;
-								onum = nnum;
-							}
-						}
-					}
-				}
+				delta_score += self.mov_dir(
+					(0..GRID_WIDTH).rev().by_ref(),
+					(0..GRID_HEIGHT).by_ref(),
+					1, 0,
+				);
 			},
 			_ => {},
 		}

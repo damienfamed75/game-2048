@@ -26,10 +26,9 @@ impl Game {
         let keys: Vec<Keycode> = self.device.get_keys();
         for key in keys.iter() {
             if is_move_key(key) {
-				let delta_score = self.map.mov_direction(key);
+				let delta_score = self.map.mov(key);
 				self.score += delta_score;
-				let multiplier = self.rand_multiplier();
-				self.map.new_rand_block(2*multiplier);
+				self.map.new_rand_block();
                 self.draw();
                 println!("Pressed key: {:?}", key);
                 // Sleep on this thread so it doesn't draw a billion times from
@@ -42,10 +41,6 @@ impl Game {
         print!("\x1B[2J\x1B[1;1H");
         println!("score: {}", self.score);
         println!("{}", self.map.to_string());
-	}
-	fn rand_multiplier(&self) -> i16 {
-		let mut rng = rand::thread_rng();
-		rng.gen_range(0, 3) as i16
 	}
 }
 
