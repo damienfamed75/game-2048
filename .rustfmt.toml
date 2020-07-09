@@ -7,6 +7,7 @@ struct_field_align_threshold = 20 # https://github.com/rust-lang/rustfmt/blob/ma
 overflow_delimited_expr = true # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#overflow_delimited_expr
 fn_single_line = true # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#fn_single_line
 newline_style = "Unix" # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#newline_style
+match_arm_blocks = false # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#match_arm_blocks
 
 # unstable features
 unstable_features = true
