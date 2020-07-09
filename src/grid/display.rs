@@ -1,8 +1,6 @@
-// standard libraries
+use crate::grid::{Grid, GRID_WIDTH};
 use std::fmt;
 use std::fmt::Display;
-// internal modules
-use crate::grid::{Grid, GRID_WIDTH};
 
 const BOX_WIDTH: usize = 8; // individual box width
 

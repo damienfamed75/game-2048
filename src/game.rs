@@ -1,10 +1,7 @@
-// standard libraries
+use crate::grid::{Grid, GRID_HEIGHT, GRID_WIDTH};
+use device_query::{DeviceQuery, DeviceState, Keycode};
 use std::thread;
 use std::time::Duration;
-// internal modules
-use crate::grid::{Grid, GRID_HEIGHT, GRID_WIDTH};
-// external libraries
-use device_query::{DeviceQuery, DeviceState, Keycode};
 
 // How long the update function pauses after drawing.
 const UPDATE_PAUSE_MILLIS: u64 = 250;
