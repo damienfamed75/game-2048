@@ -96,7 +96,7 @@ impl Grid {
 			if let Some(obj) = self.obj_at((x+dx) as usize, y as usize) {
 				match obj {
 					Object::Block(other_number) => {
-						println!("block found [y]");
+						println!("You lost");
 						if number == other_number {
 							self.0[(x+dx) as usize][y as usize] = Object::Block(other_number + number);
 							self.0[x as usize][y as usize] = Object::Empty;
@@ -104,7 +104,7 @@ impl Grid {
 						}
 					}
 					Object::Empty => {
-						println!("empty found [y]");
+						println!("You lost");
 						self.0[(x+dx) as usize][y as usize] = Object::Block(number);
 						self.0[x as usize][y as usize] = Object::Empty;
 						return (x+dx, y, number);
@@ -115,7 +115,7 @@ impl Grid {
 			if let Some(obj) = self.obj_at(x as usize, (y+dy) as usize) {
 				match obj {
 					Object::Block(other_number) => {
-						println!("block found [y]");
+						println!("You lost");
 						if number == other_number {
 							self.0[x as usize][(y+dy) as usize] = Object::Block(other_number + number);
 							self.0[x as usize][y as usize] = Object::Empty;
@@ -123,7 +123,7 @@ impl Grid {
 						}
 					}
 					Object::Empty => {
-						println!("empty found [y]");
+						println!("You lost");
 						self.0[x as usize][(y+dy) as usize] = Object::Block(number);
 						self.0[x as usize][y as usize] = Object::Empty;
 						return (x, y+dy, number);
@@ -134,64 +134,88 @@ impl Grid {
 
         (x, y, number)
     }
-    pub fn mov_direction(&mut self, dir: &Keycode) {
-        for x in 0..self.0.len() {
-            for y in 0..self.0[x].len() {
-                if let Object::Block(number) = self.0[x][y] {
-                    match *dir {
-                        Keycode::Right =>{
+    pub fn mov_direction(&mut self, dir: &Keycode) -> i32 {
+		let mut delta_score: i32 = 0;
+		match *dir {
+			Keycode::Right => {
+				for x in 0..self.0.len() {
+					for y in (0..self.0[x].len()).rev() {
+						if let Object::Block(number) = self.0[x][y] {
 							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
 							let mut onum = number; // var for original number.
 							loop {
 								let (nx, ny, nnum) = self.mov(onum, ox, oy, 0, 1);
 								if (nx, ny) == (ox, oy) { break; }
+								if onum != nnum { delta_score += nnum as i32; }
 								// Originals equal the new values.
 								ox = nx;
 								oy = ny;
 								onum = nnum;
 							}
-						},
-                        Keycode::Left => {
+						}
+					}
+				}
+			},
+			Keycode::Left => {
+				for x in 0..self.0.len() {
+					for y in 0..self.0[x].len() {
+						if let Object::Block(number) = self.0[x][y] {
 							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
 							let mut onum = number; // var for original number.
 							loop {
 								let (nx, ny, nnum) = self.mov(onum, ox, oy, 0, -1);
 								if (nx, ny) == (ox, oy) { break; }
+								if onum != nnum { delta_score += nnum as i32; }
 								// Originals equal the new values.
 								ox = nx;
 								oy = ny;
 								onum = nnum;
 							}
-                        }
-                        Keycode::Up => {
+						}
+					}
+				}
+			},
+			Keycode::Up => {
+				for x in 0..self.0.len() {
+					for y in 0..self.0[x].len() {
+						if let Object::Block(number) = self.0[x][y] {
 							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
 							let mut onum = number; // var for original number.
 							loop {
 								let (nx, ny, nnum) = self.mov(onum, ox, oy, -1, 0);
 								if (nx, ny) == (ox, oy) { break; }
+								if onum != nnum { delta_score += nnum as i32; }
 								// Originals equal the new values.
 								ox = nx;
 								oy = ny;
 								onum = nnum;
 							}
-						},
-                        Keycode::Down => {
+						}
+					}
+				}
+			},
+			Keycode::Down => {
+				for x in (0..self.0.len()).rev() {
+					for y in 0..self.0[x].len() {
+						if let Object::Block(number) = self.0[x][y] {
 							let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
 							let mut onum = number; // var for original number.
 							loop {
 								let (nx, ny, nnum) = self.mov(onum, ox, oy, 1, 0);
 								if (nx, ny) == (ox, oy) { break; }
+								if onum != nnum { delta_score += nnum as i32; }
 								// Originals equal the new values.
 								ox = nx;
 								oy = ny;
 								onum = nnum;
 							}
-                        }
-                        _ => {},
-                    }
-                }
-            }
-        }
+						}
+					}
+				}
+			},
+			_ => {},
+		}
+		delta_score
     }
 }
 

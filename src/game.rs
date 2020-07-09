@@ -26,7 +26,8 @@ impl Game {
         let keys: Vec<Keycode> = self.device.get_keys();
         for key in keys.iter() {
             if is_move_key(key) {
-				self.map.mov_direction(key);
+				let delta_score = self.map.mov_direction(key);
+				self.score += delta_score;
 				let multiplier = self.rand_multiplier();
 				self.map.new_rand_block(2*multiplier);
                 self.draw();
