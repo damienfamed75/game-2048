@@ -5,10 +5,10 @@ use crate::object::Object;
 // external libraries
 use rand::Rng;
 
-pub const GRID_WIDTH: usize			= 4; // width
-pub const GRID_HEIGHT: usize		= 4; // height
-const BLOCK_DEFAULT_NUMBER: i16		= 2; // random block starting value
-const MAX_RETRY_RAND_BLOCK: i32		= 64;
+pub const GRID_WIDTH: usize		= 4; // width
+pub const GRID_HEIGHT: usize	= 4; // height
+const BLOCK_DEFAULT_NUMBER: i16	= 2; // random block starting value
+const MAX_RETRY_RAND_BLOCK: i32	= 64;
 
 // vertical bars │ │ │
 // separator ──────
@@ -25,7 +25,8 @@ pub struct Grid(pub [[Object; GRID_HEIGHT]; GRID_WIDTH]);
 impl Grid {
     pub fn new() -> Self {
         let mut grid = Self([[Object::default(); GRID_HEIGHT]; GRID_WIDTH]);
-        // Generate two random variables to spawn.
+		// Generate two random variables to spawn.
+		// We unwrap the errors because these calls should never error.
 		grid.new_rand_block().unwrap();
 		grid.new_rand_block().unwrap();
 		// Return the grid with the new two random blocks.
@@ -46,9 +47,10 @@ impl Grid {
                 self.0[x][y] = Object::Block(BLOCK_DEFAULT_NUMBER);
                 return Ok(());
 			}
+			// Add to the retry counter.
 			tries += 1;
 			if tries >= MAX_RETRY_RAND_BLOCK {
-				return Err(());
+				return Err(()); // No empty spots on the map found.
 			}
         }
 	}
@@ -76,13 +78,20 @@ impl Grid {
 			// the first loop.
 			for y in y_iter.clone().into_iter() {
 				if let Object::Block(number) = self.0[x][y] {
-					let (mut ox,mut oy): (i8, i8) = (x as i8, y as i8);
+					// Store copies of the original x, and original y
+					let (mut ox,mut oy) = (x as i8, y as i8);
 					let mut onum = number; // var for original number.
 					loop {
 						let (nx, ny, nnum) = self.mov_delta(onum, ox, oy, dx, dy);
-						if (nx, ny) == (ox, oy) { break; }
-						if onum != nnum { delta_score += nnum as i32; }
-						// Originals equal the new values.
+						// If the block's position didn't change then break.
+						if (nx, ny) == (ox, oy) {
+							break;
+						}
+						// If the block's number changed, then add delta score.
+						if onum != nnum {
+							delta_score += nnum as i32;
+						}
+						// Set the originals equal the new values.
 						ox = nx;
 						oy = ny;
 						onum = nnum;
@@ -101,36 +110,50 @@ impl Grid {
 			Some(self.0[x][y])
 		}
 	}
+	// TODO refactor this function.
+	// this function returns (new_x, new_y, new_number)
     fn mov_delta(&mut self, number: i16, x: i8, y: i8, dx: i8, dy: i8) -> (i8, i8, i16) {
-		if dx != 0 {
+		if dx != 0 { // If the block is marked to move on the x-axis
+			// If there's an object neighboring this block.
 			if let Some(obj) = self.obj_at((x+dx) as usize, y as usize) {
 				match obj {
 					Object::Block(other_number) => {
+						// If this neighboring block's value is equal to this.
 						if number == other_number {
+							// Set the neighboring block's value to a new number.
 							self.0[(x+dx) as usize][y as usize] = Object::Block(other_number + number);
+							// Set current block's position to empty.
 							self.0[x as usize][y as usize] = Object::Empty;
 							return (x+dx, y+dy, other_number+number);
 						}
 					}
 					Object::Empty => {
+						// If this neighboring object is empty then move.
 						self.0[(x+dx) as usize][y as usize] = Object::Block(number);
+						// Set current block's position to empty.
 						self.0[x as usize][y as usize] = Object::Empty;
 						return (x+dx, y, number);
 					}
 				}
 			}
-		} else if dy != 0 {
+		} else if dy != 0 { // If the block is marked to move on the y-axis
+			// If there's an object neighboring this block.
 			if let Some(obj) = self.obj_at(x as usize, (y+dy) as usize) {
 				match obj {
 					Object::Block(other_number) => {
+						// If this neighboring block's value is equal to this.
 						if number == other_number {
+							// Set the neighboring block's value to a new number.
 							self.0[x as usize][(y+dy) as usize] = Object::Block(other_number + number);
+							// Set current block's position to empty.
 							self.0[x as usize][y as usize] = Object::Empty;
 							return (x, y+dy, other_number+number);
 						}
 					}
 					Object::Empty => {
+						// If this neighboring object is empty then move.
 						self.0[x as usize][(y+dy) as usize] = Object::Block(number);
+						// Set current block's position to empty.
 						self.0[x as usize][y as usize] = Object::Empty;
 						return (x, y+dy, number);
 					}

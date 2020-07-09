@@ -7,11 +7,12 @@ use crate::grid::{Grid, GRID_WIDTH, GRID_HEIGHT};
 use device_query::{DeviceQuery, DeviceState, Keycode};
 
 // How long the update function pauses after drawing.
-const UPDATE_PAUSE_MILLIS: u64 = 500;
+const UPDATE_PAUSE_MILLIS: u64 = 250;
 
+// Game keeps track of the drawing, controls, and score.
 pub struct Game {
-    pub score: i32,
     device: DeviceState,
+    pub score: i32,
     pub map: Grid,
 }
 
@@ -22,13 +23,16 @@ impl Game {
             device: DeviceState::new(),
             map: Grid::new(),
         }
-    }
+	}
+	// When update returns an Err(()) it means the game is lost.
     pub fn update(&mut self) -> Result<(), ()> {
         let keys: Vec<Keycode> = self.device.get_keys();
         for key in keys.iter() {
 			// Only try to move if it's a valid movement key.
             if is_move_key(key) {
 				self.update_movement(key);
+				// Try to create a new block.
+				// If unsuccessful then the error is propogated.
 				self.map.new_rand_block()?;
                 self.draw();
                 println!("Pressed key: {:?}", key);
@@ -40,7 +44,22 @@ impl Game {
 		Ok(())
 	}
 	pub fn update_movement(&mut self, dir: &Keycode) {
-		match *dir {
+		// Since the game coordinates are actually set up like this:
+		//
+		//		0 ⇒ y
+		//		⇓
+		//		x
+		//
+		// We have to match what the user would expect when pressing
+		// left, right, up, and down. Such as this:
+		//
+		//		y
+		//		⇑
+		//		0 ⇒ x
+		// 
+		// That's why the x, and y are flipped around in a confusing manner
+		// when calling the functions to move.
+		match dir.to_owned() {
 			Keycode::Right => {
 				self.score += self.map.mov_dir(
 					(0..GRID_WIDTH).by_ref(),
@@ -69,12 +88,17 @@ impl Game {
 					1, 0,
 				);
 			},
-			_ => {},
+			_ => {}, // Omit other key codes.
 		}
 	}
     pub fn draw(&self) {
-        print!("\x1B[2J\x1B[1;1H");
-        println!("score: {} | ", self.score);
+		// Clear the terminal and set cursor to first row, first column.
+		print!("\x1B[2J\x1B[1;1H");
+		// Display score.
+		print!("score: {} |", self.score);
+		// Display controls.
+		println!(" controls: arrow keys(↑ ↓ ← →)");
+		// Draw the map.
         println!("{}", self.map);
 	}
 }
