@@ -10,6 +10,9 @@ fn main() {
     g.draw();
     // Game loop.
     loop {
-        g.update();
+        if let Err(()) = g.update() {
+			print!("You LOST");
+			return;
+		}
     }
 }
