@@ -11,8 +11,8 @@ fn main() {
     // Game loop.
     loop {
         if let Err(()) = g.update() {
-			print!("You LOST");
-			return;
-		}
+            print!("You LOST");
+            return;
+        }
     }
 }

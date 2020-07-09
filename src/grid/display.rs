@@ -1,13 +1,13 @@
 // standard libraries
 use std::fmt;
-use std::fmt::{Display};
+use std::fmt::Display;
 // internal modules
 use crate::grid::{Grid, GRID_WIDTH};
 
 const BOX_WIDTH: usize = 8; // individual box width
 
 // Character set:
-// 
+//
 // vertical bars │ │ │
 // separator ──────
 //
@@ -18,16 +18,14 @@ const BOX_WIDTH: usize = 8; // individual box width
 // └──────┴──────┘
 
 impl Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.to_string()) }
 }
 
 impl Grid {
-	fn to_string(&self) -> String {
+    fn to_string(&self) -> String {
         let arr = self.0;
         let mut response = String::new();
-		// Append the top of the grid.
+        // Append the top of the grid.
         response.push_str(&format!(
             "┌{0:─>width$}┬{0:─>width$}┬{0:─>width$}┬{0:─>width$}┐",
             "", // intentional empty string
@@ -41,9 +39,9 @@ impl Grid {
 
             // Write the formatted object to the string.
             for obj in arr[x].iter() {
-				// each iteration adds: "{num}   │"
-				response.push_str(&obj.fmt_width(BOX_WIDTH));
-				response.push('│');
+                // each iteration adds: "{num}   │"
+                response.push_str(&obj.fmt_width(BOX_WIDTH));
+                response.push('│');
             }
 
             response.push_str("\n│");
@@ -58,12 +56,12 @@ impl Grid {
                 response.push_str(&format!("{:─>width$}┤", "─", width = BOX_WIDTH));
             }
         }
-		// Append the bottom of the grid.
+        // Append the bottom of the grid.
         response.push_str(&format!(
             "\n└{0:─>width$}┴{0:─>width$}┴{0:─>width$}┴{0:─>width$}┘",
             "", // intentional empty string
             width = BOX_WIDTH
         ));
         response
-	}
+    }
 }

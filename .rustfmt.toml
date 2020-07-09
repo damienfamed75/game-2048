@@ -1,0 +1,14 @@
+# stable features
+edition = "2018"
+binop_separator = "Front" # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#binop_separator
+brace_style = "PreferSameLine" # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#brace_style
+type_punctuation_density = "Compressed" # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#type_punctuation_density
+struct_field_align_threshold = 20 # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#struct_field_align_threshold
+overflow_delimited_expr = true # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#overflow_delimited_expr
+fn_single_line = true # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#fn_single_line
+newline_style = "Unix" # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#newline_style
+
+# unstable features
+unstable_features = true
+use_field_init_shorthand = true # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#use_field_init_shorthand
+use_try_shorthand = true # https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#use_try_shorthand
