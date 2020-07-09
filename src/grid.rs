@@ -97,27 +97,27 @@ impl Grid {
                 }
             }
         }
-        for yy in y..(y + dy) {}
+        for _yy in y..(y + dy) {}
     }
-    pub fn mov_direction(&mut self, dir: &Keycode) {
-        let arr = &mut self.0;
-        for (x, row) in arr.iter().enumerate() {
-            for (y, col) in row.iter().enumerate() {
-                if let Object::Block(number) = col {
-                    match *dir {
-                        Keycode::Up => self.mov(*number, x as i8, y as i8, 0, GRID_HEIGHT as i8),
-                        Keycode::Down => {
-                            self.mov(*number, x as i8, y as i8, 0, GRID_HEIGHT as i8 * -1)
-                        }
-                        Keycode::Left => self.mov(*number, x as i8, y as i8, GRID_WIDTH as i8, 0),
-                        Keycode::Right => {
-                            self.mov(*number, x as i8, y as i8, GRID_WIDTH as i8 * -1, 0)
-                        }
-                        _ => self.mov(0, x as i8, y as i8, 0, 0),
-                    }
-                }
-            }
-        }
+    pub fn mov_direction(&mut self, _dir: &Keycode) {
+        // let arr = &mut self.0;
+        // for (x, row) in arr.iter().enumerate() {
+        //     for (y, col) in row.iter().enumerate() {
+        //         if let Object::Block(number) = col {
+        //             match *dir {
+        //                 Keycode::Up => self.mov(*number, x as i8, y as i8, 0, GRID_HEIGHT as i8),
+        //                 Keycode::Down => {
+        //                     self.mov(*number, x as i8, y as i8, 0, GRID_HEIGHT as i8 * -1)
+        //                 }
+        //                 Keycode::Left => self.mov(*number, x as i8, y as i8, GRID_WIDTH as i8, 0),
+        //                 Keycode::Right => {
+        //                     self.mov(*number, x as i8, y as i8, GRID_WIDTH as i8 * -1, 0)
+        //                 }
+        //                 _ => self.mov(0, x as i8, y as i8, 0, 0),
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
 
