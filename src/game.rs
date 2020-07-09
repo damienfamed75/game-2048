@@ -30,10 +30,14 @@ impl Game {
         for key in keys.iter() {
             // Only try to move if it's a valid movement key.
             if is_move_key(key) {
-                self.score += self.update_movement(key);
+                let (delta_score, should_spawn_block) = self.update_movement(key);
+                // Add the delta score.
+                self.score += delta_score;
                 // Try to create a new block.
-                // If unsuccessful then the error is propogated.
-                self.map.new_rand_block()?;
+                if should_spawn_block {
+                    // If unsuccessful then the error is propogated.
+                    self.map.new_rand_block()?;
+                }
                 self.draw();
                 println!("Pressed key: {:?}", key);
                 // Sleep on this thread so it doesn't draw a billion times from
@@ -43,7 +47,7 @@ impl Game {
         }
         Ok(())
     }
-    pub fn update_movement(&mut self, dir: &Keycode) -> i32 {
+    pub fn update_movement(&mut self, dir: &Keycode) -> (i32, bool) {
         // Since the game coordinates are actually set up like this:
         //
         //		0 ⇒ y
@@ -87,7 +91,7 @@ impl Game {
                 -1, // up -x
                 0,
             ),
-            _ => 0, // Omit other key codes.
+            _ => (0, false), // Omit other key codes.
         }
     }
     pub fn draw(&self) {

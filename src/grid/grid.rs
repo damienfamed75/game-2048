@@ -4,7 +4,6 @@ use std::iter::Iterator;
 
 pub const GRID_WIDTH: usize = 4; // width
 pub const GRID_HEIGHT: usize = 4; // height
-const BLOCK_DEFAULT_NUMBER: i16 = 2; // random block starting value
 const MAX_RETRY_RAND_BLOCK: i32 = 64;
 
 // Grid is a structure of a tuple containing a 2-dimensional array of objects.
@@ -15,8 +14,9 @@ impl Grid {
         let mut grid = Self([[Object::default(); GRID_HEIGHT]; GRID_WIDTH]);
         // Generate two random variables to spawn.
         // We unwrap the errors because these calls should never error.
-        grid.place_block(2).unwrap();
-        grid.place_block(2).unwrap();
+        grid.place_block(2) // place a block of value 2
+            .and(grid.place_block(2)) // and place another block of value 2
+			.expect("grid has no empty spaces");
         // Return the grid with the new two random blocks.
         grid
     }
@@ -26,12 +26,11 @@ impl Grid {
     // After meeting the max retry count to find an empty spot on the grid,
     // an error is thrown to indicate that the game is lost.
     pub fn new_rand_block(&mut self) -> Result<(), ()> {
-        let mut block_number = BLOCK_DEFAULT_NUMBER; // default value is 2.
         let mut rng = rand::thread_rng();
-        // Take the probability of 1/9; if number generated is true, return 4;
-        if rng.gen_ratio(1, 9) {
-            block_number = 4;
-        }
+        // Take the probability of 1/9 which is 10%
+        // if the random number generated meets the ratio, then the block
+        // will be 4, otherwise default to 2.
+        let block_number: i16 = if rng.gen_ratio(1, 9) { 4 } else { 2 };
         self.place_block(block_number) // try to place block.
     }
     // places a block with the given value on a random spot of the grid.
@@ -40,7 +39,6 @@ impl Grid {
     // an error is thrown to indicate that the game is lost.
     pub fn place_block(&mut self, num: i16) -> Result<(), ()> {
         let mut tries = 0; // number of retries to place a random block.
-                           // Loop until the block is placed.
         loop {
             let mut rng = rand::thread_rng();
             let (x, y) = (rng.gen_range(0, GRID_WIDTH), rng.gen_range(0, GRID_HEIGHT));
@@ -69,13 +67,14 @@ impl Grid {
         y_iter: &mut Y,
         dx: i8,
         dy: i8,
-    ) -> i32
+    ) -> (i32, bool)
     where
         // iterators must be of indices (usize)
         X: Iterator<Item=usize>,
         Y: Iterator<Item=usize>, {
         // How much the score should change by.
         let mut delta_score: i32 = 0;
+        let mut should_spawn_new_block = false;
         for x in x_iter.into_iter() {
             // We must clone the iterator because the reference is used up after
             // the first loop.
@@ -89,6 +88,9 @@ impl Grid {
                         // If the block's position didn't change then break.
                         if (nx, ny) == (ox, oy) {
                             break;
+                        } else {
+                            // A block moved so a new block should be spawned.
+                            should_spawn_new_block = true;
                         }
                         // If the block's number changed, then add to the score
                         // and stop movement for this block by breaking.
@@ -104,7 +106,7 @@ impl Grid {
                 }
             }
         }
-        delta_score
+        (delta_score, should_spawn_new_block)
     }
     // mov_delta moves the selected block by the delta x and y.
     // If the new position is another block of the same number, they are merged.
