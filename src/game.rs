@@ -9,6 +9,16 @@ use device_query::{DeviceQuery, DeviceState, Keycode};
 // How long the update function pauses after drawing.
 const UPDATE_PAUSE_MILLIS: u64 = 250;
 
+// ansi shadow font
+const TITLE: &str = r#"
+   ██████╗  ██████╗ ██╗  ██╗ █████╗ 
+   ╚════██╗██╔═████╗██║  ██║██╔══██╗
+    █████╔╝██║██╔██║███████║╚█████╔╝
+   ██╔═══╝ ████╔╝██║╚════██║██╔══██╗
+   ███████╗╚██████╔╝     ██║╚█████╔╝
+   ╚══════╝ ╚═════╝      ╚═╝ ╚════╝ 
+"#;
+
 // Game keeps track of the drawing, controls, and score.
 pub struct Game {
     device:    DeviceState,
@@ -39,7 +49,7 @@ impl Game {
                     self.map.new_rand_block()?;
                 }
                 self.draw();
-                println!("Pressed key: {:?}", key);
+                println!("Last move: {:?}", key);
                 // Sleep on this thread so it doesn't draw a billion times from
                 // a single key press.
                 thread::sleep(Duration::from_millis(UPDATE_PAUSE_MILLIS));
@@ -97,6 +107,7 @@ impl Game {
     pub fn draw(&self) {
         // Clear the terminal and set cursor to first row, first column.
         print!("\x1B[2J\x1B[1;1H");
+        println!("{}", TITLE);
         // Display score.
         print!("score: {} |", self.score);
         // Display controls.

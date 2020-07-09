@@ -27,15 +27,15 @@ impl Grid {
         let mut response = String::new();
         // Append the top of the grid.
         response.push_str(&format!(
-            "┌{0:─>width$}┬{0:─>width$}┬{0:─>width$}┬{0:─>width$}┐",
+            " ┌{0:─>width$}┬{0:─>width$}┬{0:─>width$}┬{0:─>width$}┐",
             "", // intentional empty string
-            width = BOX_WIDTH
+            width = BOX_WIDTH,
         ));
 
         for x in 0..GRID_WIDTH {
-            response.push_str("\n│");
+            response.push_str("\n │");
             response.push_str(&format!("{: >width$}│", "", width = BOX_WIDTH).repeat(arr[x].len()));
-            response.push_str("\n│");
+            response.push_str("\n │");
 
             // Write the formatted object to the string.
             for obj in arr[x].iter() {
@@ -44,12 +44,12 @@ impl Grid {
                 response.push('│');
             }
 
-            response.push_str("\n│");
+            response.push_str("\n │");
             response.push_str(&format!("{: >width$}│", "", width = BOX_WIDTH).repeat(arr[x].len()));
             // If this isn't the last line, then draw connectors between all of
             // the boxes.
             if x != GRID_WIDTH - 1 {
-                response.push_str(&format!("\n├{:─>width$}┼", "─", width = BOX_WIDTH));
+                response.push_str(&format!("\n ├{:─>width$}┼", "─", width = BOX_WIDTH));
                 response.push_str(
                     &format!("{:─>width$}┼", "─", width = BOX_WIDTH).repeat(arr[x].len() - 2),
                 );
@@ -58,7 +58,7 @@ impl Grid {
         }
         // Append the bottom of the grid.
         response.push_str(&format!(
-            "\n└{0:─>width$}┴{0:─>width$}┴{0:─>width$}┴{0:─>width$}┘",
+            "\n └{0:─>width$}┴{0:─>width$}┴{0:─>width$}┴{0:─>width$}┘",
             "", // intentional empty string
             width = BOX_WIDTH
         ));
