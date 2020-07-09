@@ -1,7 +1,5 @@
 // standard libraries
 use std::iter::Iterator;
-use std::fmt;
-use std::fmt::{Display};
 // internal modules
 use crate::object::Object;
 // external libraries
@@ -9,7 +7,6 @@ use rand::Rng;
 
 pub const GRID_WIDTH: usize			= 4; // width
 pub const GRID_HEIGHT: usize		= 4; // height
-const BOX_WIDTH: usize				= 8; // individual box width
 const BLOCK_DEFAULT_NUMBER: i16		= 2; // random block starting value
 const MAX_RETRY_RAND_BLOCK: i32		= 64;
 
@@ -23,13 +20,7 @@ const MAX_RETRY_RAND_BLOCK: i32		= 64;
 // └──────┴──────┘
 
 // Grid is a 4x4 2 dimensional array each containing a block.
-pub struct Grid([[Object; GRID_HEIGHT]; GRID_WIDTH]);
-
-impl Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
+pub struct Grid(pub [[Object; GRID_HEIGHT]; GRID_WIDTH]);
 
 impl Grid {
     pub fn new() -> Self {
@@ -42,8 +33,11 @@ impl Grid {
 	}
 	// creates a new random block with a default value on a random spot of the
 	// grid.
+	//
+	// After meeting the max retry count to find an empty spot on the grid,
+	// an error is thrown to indicate that the game is lost.
 	pub fn new_rand_block(&mut self) -> Result<(), ()> {
-		let mut tries = 0;
+		let mut tries = 0; // number of retries to place a random block.
         loop {
             let mut rng = rand::thread_rng();
             let (x, y) = (rng.gen_range(0, GRID_WIDTH), rng.gen_range(0, GRID_HEIGHT));
@@ -65,11 +59,17 @@ impl Grid {
 	// Pass in the iterator for the x and y axis.
 	// Iterator is passed in because movement on an axis may affect what direction
 	// you want to check the blocks in.
-	pub fn mov_dir<X: Iterator+Clone, Y: Iterator+Clone>(&mut self, x_iter: &mut X, y_iter: &mut Y, dx: i8, dy: i8) -> i32
+	pub fn mov_dir<X: Iterator+Clone, Y: Iterator+Clone>(
+		&mut self,
+		x_iter: &mut X,
+		y_iter: &mut Y,
+		dx: i8, dy: i8,
+	) -> i32
 	where 
 		X: Iterator<Item = usize>,
 		Y: Iterator<Item = usize>
 	{
+		// How much the score should change by.
 		let mut delta_score: i32 = 0;
 		for x in x_iter.into_iter() {
 			// We must clone the iterator because the reference is used up after
@@ -137,48 +137,6 @@ impl Grid {
 				}
 			}
 		}
-
         (x, y, number)
-	}
-	fn to_string(&self) -> String {
-        let arr = self.0;
-        let mut response = String::new();
-		// Append the top of the grid.
-        response.push_str(&format!(
-            "┌{0:─>width$}┬{0:─>width$}┬{0:─>width$}┬{0:─>width$}┐",
-            "", // intentional empty string
-            width = BOX_WIDTH
-        ));
-
-        for x in 0..GRID_WIDTH {
-            response.push_str("\n│");
-            response.push_str(&format!("{: >width$}│", "", width = BOX_WIDTH).repeat(arr[x].len()));
-            response.push_str("\n│");
-
-            // Write the formatted object to the string.
-            for obj in arr[x].iter() {
-				// each iteration adds: "{num}   |"
-                response.push_str(&obj.fmt_width(BOX_WIDTH));
-            }
-
-            response.push_str("\n│");
-            response.push_str(&format!("{: >width$}│", "", width = BOX_WIDTH).repeat(arr[x].len()));
-            // If this isn't the last line, then draw connectors between all of
-            // the boxes.
-            if x != GRID_WIDTH - 1 {
-                response.push_str(&format!("\n├{:─>width$}┼", "─", width = BOX_WIDTH));
-                response.push_str(
-                    &format!("{:─>width$}┼", "─", width = BOX_WIDTH).repeat(arr[x].len() - 2),
-                );
-                response.push_str(&format!("{:─>width$}┤", "─", width = BOX_WIDTH));
-            }
-        }
-		// Append the bottom of the grid.
-        response.push_str(&format!(
-            "\n└{0:─>width$}┴{0:─>width$}┴{0:─>width$}┴{0:─>width$}┘",
-            "", // intentional empty string
-            width = BOX_WIDTH
-        ));
-        response
 	}
 }

@@ -10,9 +10,7 @@ pub enum Object {
 }
 
 impl Default for Object {
-    fn default() -> Self {
-        Object::Empty
-    }
+    fn default() -> Self { Object::Empty }
 }
 
 impl Object {
@@ -24,9 +22,9 @@ impl Object {
         if let Object::Block(number) = self {
             let painted = format!("{}", self.color().paint(number.to_string()));
             let offset = painted.len() - number.to_string().len();
-            return format!("{: ^width$}│", painted, width = width + offset);
+            return format!("{: ^width$}", painted, width = width + offset);
         }
-        format!("{: ^width$}│", "", width = width)
+        format!("{: ^width$}", "", width = width)
     }
     pub fn color(&self) -> Color {
         if let Object::Block(num) = self {
@@ -42,7 +40,7 @@ impl Object {
                 512 => return Color::RGB(64, 0, 225),
                 1024 => return Color::RGB(75, 0, 130),
                 2048 => return Color::RGB(230, 110, 210),
-                _ => return Color::Black,
+                _ => return Color::RGB(255, 150, 200),
             }
         }
 
