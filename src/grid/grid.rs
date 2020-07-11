@@ -61,6 +61,9 @@ impl Grid {
     // Pass in the iterator for the x and y axis.
     // Iterator is passed in because movement on an axis may affect what direction
     // you want to check the blocks in.
+    //
+    // This function returns the score accumulated from this movement and
+    // a boolean value that indicates if any blocks were moved from this move.
     pub fn mov_dir<X: Iterator+Clone, Y: Iterator+Clone>(
         &mut self,
         x_iter: &mut X,
@@ -76,7 +79,7 @@ impl Grid {
         let mut delta_score: i32 = 0;
         let mut should_spawn_new_block = false;
         for x in x_iter.into_iter() {
-            // We must clone the iterator because the reference is used up after
+            // We must clone the iterator because the iterator is used up after
             // the first loop.
             for y in y_iter.clone().into_iter() {
                 if let Object::Block(number) = self.0[x][y] {

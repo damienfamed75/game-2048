@@ -18,7 +18,7 @@ const TITLE: &str = r#"
 
 // Game keeps track of the drawing, controls, and score.
 pub struct Game {
-    device:    DeviceState,
+    device:    DeviceState, // Input device state tracker.
     pub score: i32,
     pub map:   Grid,
 }
@@ -75,29 +75,29 @@ impl Game {
         // when calling the functions to move.
         match dir.to_owned() {
             Keycode::Right => self.map.mov_dir(
-                (0..GRID_WIDTH).by_ref(),
-                (0..GRID_HEIGHT).rev().by_ref(),
-                0,
-                1, // right +y
-            ),
+                (0..GRID_WIDTH).by_ref(),        //      y ⇐ 0
+                (0..GRID_HEIGHT).rev().by_ref(), //          ⇓
+                0,                               //          x
+                1,                               // scan y right to left
+            ), // right +y
             Keycode::Left => self.map.mov_dir(
-                (0..GRID_WIDTH).by_ref(),
-                (0..GRID_HEIGHT).by_ref(),
-                0,
-                -1, // left -y
-            ),
+                (0..GRID_WIDTH).by_ref(),  //      0 ⇒ y
+                (0..GRID_HEIGHT).by_ref(), //      ⇓
+                0,                         //      x
+                -1,                        // normal scan directions
+            ), // left -y
             Keycode::Down => self.map.mov_dir(
-                (0..GRID_WIDTH).rev().by_ref(),
-                (0..GRID_HEIGHT).by_ref(),
-                1, // down +x
-                0,
-            ),
+                (0..GRID_WIDTH).rev().by_ref(), //      x
+                (0..GRID_HEIGHT).by_ref(),      //      ⇑
+                1,                              //      0 ⇒ y
+                0,                              // scan down to up
+            ), // down +x
             Keycode::Up => self.map.mov_dir(
-                (0..GRID_WIDTH).by_ref(),
-                (0..GRID_HEIGHT).by_ref(),
-                -1, // up -x
-                0,
-            ),
+                (0..GRID_WIDTH).by_ref(),  //      0 ⇒ y
+                (0..GRID_HEIGHT).by_ref(), //      ⇓
+                -1,                        //      x
+                0,                         // normal scan directions
+            ), // up -x
             _ => (0, false), // Omit other key codes.
         }
     }
