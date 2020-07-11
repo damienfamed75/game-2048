@@ -1,7 +1,6 @@
 use crate::grid::{Grid, GRID_HEIGHT, GRID_WIDTH};
 use device_query::{DeviceQuery, DeviceState, Keycode};
-use std::thread;
-use std::time::Duration;
+use std::{thread, time::Duration};
 
 // How long the update function pauses after drawing.
 const UPDATE_PAUSE_MILLIS: u64 = 250;
@@ -40,10 +39,16 @@ impl Game {
                 let (delta_score, should_spawn_block) = self.update_movement(key);
                 // Add the delta score.
                 self.score += delta_score;
-                // Try to create a new block.
+                // If we should place a block then try to place one in a random
+                // position on the grid.
                 if should_spawn_block {
-                    // If unsuccessful then the error is propogated.
+                    // Try to place a block on the map, if there's no open spots
+                    // an error is returned.
                     self.map.new_rand_block()?;
+                } else {
+                    // Check if there's an open spot on the grid and return
+                    // an error if there's not.
+                    self.map.open_spot()?;
                 }
                 self.draw();
                 println!("Last move: {:?}", key);
@@ -57,9 +62,9 @@ impl Game {
     pub fn update_movement(&mut self, dir: &Keycode) -> (i32, bool) {
         // Since the game coordinates are actually set up like this:
         //
-        //		0 ⇒ y
-        //		⇓
-        //		x
+        //      0 ⇒ y
+        //      ⇓
+        //      x
         //
         // (down +x) (up -x)
         // (left -y) (right +y)
@@ -67,9 +72,9 @@ impl Game {
         // We have to match what the user would expect when pressing
         // left, right, up, and down. Such as this:
         //
-        //		y
-        //		⇑
-        //		0 ⇒ x
+        //      y
+        //      ⇑
+        //      0 ⇒ x
         //
         // That's why the x, and y are flipped around in a confusing manner
         // when calling the functions to move.

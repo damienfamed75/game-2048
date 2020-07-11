@@ -38,21 +38,32 @@ impl Grid {
     // After meeting the max retry count to find an empty spot on the grid,
     // an error is thrown to indicate that the game is lost.
     pub fn place_block(&mut self, num: i16) -> Result<(), ()> {
-        let mut tries = 0; // number of retries to place a random block.
+        // Try to find an open spot on the map.
+        // If there's none open, then the error is returned.
+        let (x, y) = self.open_spot()?;
+        // Place a block in the empty spot.
+        self.0[x][y] = Object::Block(num);
+        // Return an ok result.
+        Ok(())
+    }
+    // open_spot tries to find a spot on the grid that isn't populated.
+    //
+    // If none are found then an error is returned.
+    // If an empty spot is found, then the x and y coordinates are returned.
+    pub fn open_spot(&self) -> Result<(usize, usize), ()> {
+        let mut tries = 0;
         loop {
             let mut rng = rand::thread_rng();
             let (x, y) = (rng.gen_range(0, GRID_WIDTH), rng.gen_range(0, GRID_HEIGHT));
-            // If this coordinate is empty then add a new block there.
             if let Object::Empty = self.0[x][y] {
-                self.0[x][y] = Object::Block(num);
-                return Ok(());
+                return Ok((x, y));
             }
-            // Add to the retry counter.
             tries += 1;
             if tries >= MAX_RETRY_RAND_BLOCK {
-                return Err(()); // No empty spots on the map found.
+                break;
             }
         }
+        Err(())
     }
     // mov_dir moves in a direction specified.
     // -1 or 1 to move in that direction whether it be x or y.
