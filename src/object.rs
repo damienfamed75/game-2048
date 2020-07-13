@@ -13,6 +13,22 @@ impl Default for Object {
     fn default() -> Self { Object::Empty }
 }
 
+const BOX_INNER_WIDTH: usize = 8;
+// total box width with the corners.
+pub const BOX_WIDTH: i32 = BOX_INNER_WIDTH as i32 + 2; // 2 corners.
+pub const BOX_HEIGHT: i32 = 5;
+
+// Character set:
+//
+// vertical bars │ │ │
+// separator ──────
+//
+// ┌──────┬──────┐
+//
+// ├──────┼──────┤
+//
+// └──────┴──────┘
+
 impl Object {
     // Returns a centered number with whitespace as padding with the given width.
     pub fn fmt_width(&self, width: usize) -> String {
@@ -27,6 +43,51 @@ impl Object {
             return format!("{: ^width$}", painted, width = width + offset);
         }
         format!("{: ^width$}", "", width = width)
+    }
+    // write_box draws this object as a box in a String.
+    pub fn write_box(&self, x: i32, y: i32) -> String {
+        let mut response = String::new();
+        let color = self.color();
+        // Move the cursor to the specified x and y coordinates.
+        // response.push_str(&format!("\x1B[{};{}H", x, y));
+        // Loop through the box height and begin drawing the box's rows.
+        for xx in 0..BOX_HEIGHT + 1 {
+            let msg: String = match xx {
+                // If this is the first or last match.
+                1 | BOX_HEIGHT => {
+                    // Get the left and right corners based on what the xx is.
+                    let (lc, rc) = if xx == 1 {
+                        ("┌", "┐")
+                    } else {
+                        ("└", "┘")
+                    };
+                    // Create a center separator for the corners.
+                    let cnt = "─".repeat(BOX_INNER_WIDTH);
+                    // Paint and return as string.
+                    format!("{}{}{}", color.paint(lc), color.paint(cnt), color.paint(rc))
+                }
+                // Default case.
+                _ => {
+                    // If we are in the middle of the box, then draw the box's
+                    // number or draw empty if not.
+                    let obj = if xx == (BOX_HEIGHT + 1) / 2 {
+                        *self // Copy value of our object.
+                    } else {
+                        Object::Empty
+                    };
+                    format!(
+                        "{0}{1}{0}",
+                        color.paint("│"),
+                        obj.fmt_width(BOX_INNER_WIDTH)
+                    )
+                }
+            };
+            // push the part of this box into the string response.
+            response.push_str(&msg);
+            // Move the cursor to the next position.
+            response.push_str(&format!("\x1B[{};{}H", xx + x, y));
+        }
+        response
     }
     // Returns a color value dependent on the object's number value.
     pub fn color(&self) -> Color {
@@ -48,6 +109,6 @@ impl Object {
             }
         }
         // If it's empty then return black.
-        Color::Black
+        Color::White
     }
 }

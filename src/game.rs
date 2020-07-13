@@ -7,12 +7,12 @@ const UPDATE_PAUSE_MILLIS: u64 = 250;
 
 // ansi shadow font
 const TITLE: &str = r#"
-   ██████╗  ██████╗ ██╗  ██╗ █████╗ 
-   ╚════██╗██╔═████╗██║  ██║██╔══██╗
-    █████╔╝██║██╔██║███████║╚█████╔╝
-   ██╔═══╝ ████╔╝██║╚════██║██╔══██╗
-   ███████╗╚██████╔╝     ██║╚█████╔╝
-   ╚══════╝ ╚═════╝      ╚═╝ ╚════╝ 
+             ██████╗  ██████╗ ██╗  ██╗ █████╗ 
+             ╚════██╗██╔═████╗██║  ██║██╔══██╗
+              █████╔╝██║██╔██║███████║╚█████╔╝
+             ██╔═══╝ ████╔╝██║╚════██║██╔══██╗
+             ███████╗╚██████╔╝     ██║╚█████╔╝
+             ╚══════╝ ╚═════╝      ╚═╝ ╚════╝ 
 "#;
 
 // Game keeps track of the drawing, controls, and score.
@@ -111,7 +111,7 @@ impl Game {
         print!("\x1B[2J\x1B[1;1H");
         println!("{}", TITLE);
         // Display score.
-        print!("score: {} |", self.score);
+        print!("\tscore: {} |", self.score);
         // Display controls.
         println!(" controls: arrow keys(↑ ↓ ← →)");
         // Draw the map.

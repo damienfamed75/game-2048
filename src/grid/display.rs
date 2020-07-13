@@ -1,64 +1,29 @@
-use crate::grid::{Grid, GRID_WIDTH};
+use crate::{
+    grid::{Grid, GRID_WIDTH},
+    object::{BOX_HEIGHT, BOX_WIDTH},
+};
 use std::fmt::{self, Display};
 
-const BOX_WIDTH: usize = 8; // individual box width
-
-// Character set:
-//
-// vertical bars │ │ │
-// separator ──────
-//
-// ┌──────┬──────┐
-//
-// ├──────┼──────┤
-//
-// └──────┴──────┘
+const OFFSET: i32 = 6; // offset the drawing from the top of the terminal.
 
 impl Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.to_string()) }
-}
-
-impl Grid {
-    fn to_string(&self) -> String {
-        let arr = self.0;
-        let mut response = String::new();
-        // Append the top of the grid.
-        response.push_str(&format!(
-            " ┌{0:─>width$}┬{0:─>width$}┬{0:─>width$}┬{0:─>width$}┐",
-            "", // intentional empty string
-            width = BOX_WIDTH,
-        ));
-
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Grid(arr) = self; // Extract array from grid tuple.
         for x in 0..GRID_WIDTH {
-            response.push_str("\n │");
-            response.push_str(&format!("{: >width$}│", "", width = BOX_WIDTH).repeat(arr[x].len()));
-            response.push_str("\n │");
-
             // Write the formatted object to the string.
-            for obj in arr[x].iter() {
-                // each iteration adds: "{num}   │"
-                response.push_str(&obj.fmt_width(BOX_WIDTH));
-                response.push('│');
-            }
-
-            response.push_str("\n │");
-            response.push_str(&format!("{: >width$}│", "", width = BOX_WIDTH).repeat(arr[x].len()));
-            // If this isn't the last line, then draw connectors between all of
-            // the boxes.
-            if x != GRID_WIDTH - 1 {
-                response.push_str(&format!("\n ├{:─>width$}┼", "─", width = BOX_WIDTH));
-                response.push_str(
-                    &format!("{:─>width$}┼", "─", width = BOX_WIDTH).repeat(arr[x].len() - 2),
-                );
-                response.push_str(&format!("{:─>width$}┤", "─", width = BOX_WIDTH));
+            let write_x: i32 = (BOX_HEIGHT * (x + 1) as i32) + OFFSET;
+            for (y, obj) in arr[x].iter().enumerate() {
+                let write_y: i32 = BOX_WIDTH * ((y + 1) as i32);
+                // Set the cursor position to our writing coordinates.
+                write!(f, "\x1B[{};{}H", write_x, write_y)?;
+                // Draw the object at the writing coordinates.
+                write!(f, "{}", obj.write_box(write_x, write_y),)?;
+                // If this is the last of this row, then print a new line character.
+                if arr[x].len() - 1 == y {
+                    writeln!(f)?;
+                }
             }
         }
-        // Append the bottom of the grid.
-        response.push_str(&format!(
-            "\n └{0:─>width$}┴{0:─>width$}┴{0:─>width$}┴{0:─>width$}┘",
-            "", // intentional empty string
-            width = BOX_WIDTH
-        ));
-        response
+        Ok(())
     }
 }
